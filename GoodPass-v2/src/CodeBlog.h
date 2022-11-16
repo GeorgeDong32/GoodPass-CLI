@@ -4,7 +4,7 @@
 *                                                        *
 * Blog.h -- Record the Update blogs                      *
 * Copyright(c) GeorgeDong32(Github).All rights reserved. *
-* Codeblog.h version 2.6.0                               *
+* Codeblog.h version 2.7.0                               *
 *                                                        *
 **********************************************************/
 //Update Blog
