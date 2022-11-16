@@ -9,72 +9,80 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
     </Filter>
+    <Filter Include="资源文件">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Client.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="Generate.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="Data.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="Display.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="GPBase.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="FileOperate.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="MKeyProcess.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="GPHES.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="GPSES.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="Generate.h">
+    <ClInclude Include="src\CodeBlog.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="CodeBlog.h">
+    <ClInclude Include="src\Data.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="FileOperate.h">
+    <ClInclude Include="src\Display.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="MKeyProcess.h">
+    <ClInclude Include="src\FileOperate.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Display.h">
+    <ClInclude Include="src\Generate.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Data.h">
+    <ClInclude Include="src\GPBase.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="GPBase.h">
+    <ClInclude Include="src\GPHES.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="resource.h">
+    <ClInclude Include="src\GPSES.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="GPHES.h">
+    <ClInclude Include="src\MKeyProcess.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="GPSES.h">
+    <ClInclude Include="resource1.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="GoodPass.rc" />
+    <ClCompile Include="src\Client.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Data.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Display.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\FileOperate.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Generate.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GPBase.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GPHES.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GPSES.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MKeyProcess.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\Resource\Icon\GoodPass2.0_wb.ico" />
+    <ResourceCompile Include="GoodPass.rc">
+      <Filter>资源文件</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Assert\GoodPass_CLI.ico">
+      <Filter>资源文件</Filter>
+    </Image>
   </ItemGroup>
 </Project>
