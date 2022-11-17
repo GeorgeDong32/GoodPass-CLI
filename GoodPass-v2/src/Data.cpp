@@ -6,8 +6,6 @@
 #include <Windows.h>
 #include <sstream>
 
-//extern string MDpath;
-
 bool fuzzymatch(string o, string t)//×Ö·û´®Ä£ºýÆ¥Åä
 {
 	int lo = o.length(); int lt = t.length();
