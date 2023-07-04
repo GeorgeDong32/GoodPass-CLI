@@ -146,8 +146,9 @@ public class CommandLineServices
         Console.WriteLine("Usage: >>> [options] [args]/ [command]");
         Console.WriteLine("Options:");
         Console.WriteLine("  -h\t\t\t\tShow help information");
-        Console.WriteLine("  -s [content]\t\t\tSearch by platform name or account name");
-        Console.WriteLine("  -g [platform] [account]\tGet data with account name an platform name");
+        Console.WriteLine("  -s   [content]\t\tSearch by platform name or account name");
+        Console.WriteLine("  -g   [platform] [account]\tGet data with account name an platform name");
+        Console.WriteLine("       [index]\t\t\tGet data with index");
         Console.WriteLine("  -l\t\t\t\tList all account");
         Console.WriteLine("  -a\t\t\t\tAdd an account");
         Console.WriteLine("  -u   [account index]\t\tOpen update mode with account, default is the recently get account");
@@ -489,12 +490,59 @@ public class CommandLineServices
                 ConsoleHelper.PrintError(" Invalid input: [Get-mode] is not \"i\" or \"n\"");
                 break;
         }
-        
     }
 
     public void GetOptionhandler(string[]? buffer)
     {
-
+        if (buffer.Length >= 3)
+        {
+            if (string.IsNullOrEmpty(buffer[1]))
+            {
+                ConsoleHelper.PrintError(" Invalid input: [-g args] is empty");
+                return;
+            }
+            if (string.IsNullOrEmpty(buffer[2]))
+            {
+                if (Int32.TryParse(buffer[1], out int index))
+                {
+                    Get(index);
+                    return;
+                }
+                else
+                {
+                    ConsoleHelper.PrintError(" Invalid input: [index] is not a number, please check your input.");
+                    return;
+                }
+            }
+            else
+            {
+                Get(buffer[1], buffer[2]);
+                return;
+            }
+        }
+        else if (buffer.Length == 2)
+        {
+            if (string.IsNullOrEmpty(buffer[1]))
+            {
+                ConsoleHelper.PrintError(" Invalid input: [-g args] is empty");
+                return;
+            }
+            if (Int32.TryParse(buffer[1], out int index))
+            {
+                Get(index);
+                return;
+            }
+            else
+            {
+                ConsoleHelper.PrintError(" Invalid input: [index] is not a number, please check your input.");
+                return;
+            }
+        }
+        else
+        {
+            ConsoleHelper.PrintError(" Invalid input: not enough input arguments");
+            return;
+        }
     }
 }
 
