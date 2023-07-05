@@ -13,7 +13,7 @@ public static class MasterKeyService
     public static bool SetLocalMKHash(string MasterKey)
     {
         var appdataPath = $"C:\\Users\\{Environment.UserName}\\AppData\\Local";
-        var GoodPassFolderPath = Path.Combine(appdataPath, "GoodPass","GoodPass-CLI");
+        var GoodPassFolderPath = Path.Combine(appdataPath, "GoodPass", "GoodPass-CLI");
         var MKconfigPath = Path.Combine(GoodPassFolderPath, "MKconfig.txt");
         if (!System.IO.Directory.Exists(GoodPassFolderPath))
         {
@@ -116,7 +116,7 @@ public static class MasterKeyService
         {
             AESIV = GoodPassAESServices.GetLocalIV(inputKey);
             AESKey = GoodPassAESServices.GenerateKey(inputKey, AESIV);
-            ProcessMKArray(inputKey,out MKBase);
+            ProcessMKArray(inputKey, out MKBase);
             return "pass";
         }
         else if (LocalMKHash == "Not found")
@@ -140,12 +140,12 @@ public static class MasterKeyService
             MKBase = new int[40] { 1, 4, 1, 5, 9, 2, 6, 5, 3, 5, 8, 9, 7, 9, 3, 2, 3, 8, 4, 6, 2, 6, 4, 3, 3, 8, 3, 2, 7, 9, 5, 0, 2, 8, 8, 4, 1, 9, 7, 1 };
             return "npass";
         }
-        else 
+        else
         {
             AESIV = null;
             AESKey = null;
             MKBase = new int[40] { 1, 4, 1, 5, 9, 2, 6, 5, 3, 5, 8, 9, 7, 9, 3, 2, 3, 8, 4, 6, 2, 6, 4, 3, 3, 8, 3, 2, 7, 9, 5, 0, 2, 8, 8, 4, 1, 9, 7, 1 };
-            return "Unknown Error"; 
+            return "Unknown Error";
         }
     }
 

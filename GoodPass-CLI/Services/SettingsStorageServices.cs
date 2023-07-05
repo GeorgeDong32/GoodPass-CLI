@@ -1,9 +1,7 @@
-﻿using GoodPass_CLI.Models;
-
-namespace GoodPass_CLI.Services;
+﻿namespace GoodPass_CLI.Services;
 public static class SettingsStorageServices
 {
-    static readonly string _settingsFolderPath = Path.Combine($"C:\\Users\\{Environment.UserName}\\AppData\\Local","GoodPass","GoodPass-CLI");
+    static readonly string _settingsFolderPath = Path.Combine($"C:\\Users\\{Environment.UserName}\\AppData\\Local", "GoodPass", "GoodPass-CLI");
     static readonly string _settingFilePath = $"{_settingsFolderPath}\\settings.csv";
 
     public static bool SaveSettings(string settingName, string settingValue)

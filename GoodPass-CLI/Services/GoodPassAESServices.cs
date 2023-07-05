@@ -1,5 +1,4 @@
 using System.Security.Cryptography;
-using GoodPass_CLI.Services;
 
 namespace GoodPass_CLI.Services;
 
