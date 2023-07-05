@@ -1,15 +1,15 @@
-﻿using GoodPass_CLI.Services;
-using GoodPass_CLI.Models;
+﻿using GoodPass_CLI.Models;
+using GoodPass_CLI.Services;
 
 namespace GoodPass_CLI;
 
 public static class GoodPass_CLI
 {
     public static readonly string _version = "3.2.0";
-    public static int[] EncryptBase;
-    public static byte[] AESKey;
-    public static byte[] AESIV;
-    public static GPManager manager = new GPManager();
+    public static int[]? EncryptBase;
+    public static byte[]? AESKey;
+    public static byte[]? AESIV;
+    public static GPManager manager = new();
     public static async Task Main(string[] args)
     {
         #region Console Configs
@@ -39,18 +39,9 @@ public static class GoodPass_CLI
         }
     }
 
-    internal static async void CancelKeyHandler(object? sender, ConsoleCancelEventArgs args)
+    internal static void CancelKeyHandler(object? sender, ConsoleCancelEventArgs args)
     {
-        await ExitFunction();
+        CommandLineServices.Exit();
         Environment.Exit(0);
-    }
-
-    internal static async Task<bool> ExitFunction()
-    {
-        Console.WriteLine();
-        Console.WriteLine("Leaving GoodPass CLI, please wait...");
-        //TODO: 保存数据
-        await Task.Delay(1000);
-        return true;
     }
 }

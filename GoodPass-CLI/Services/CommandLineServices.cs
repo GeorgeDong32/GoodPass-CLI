@@ -1,23 +1,39 @@
-﻿using System;
-using System.Text;
-using GoodPass_CLI.Helpers;
-using GoodPass_CLI.Models;
+﻿using GoodPass_CLI.Helpers;
 
 namespace GoodPass_CLI.Services;
 public class CommandLineServices
 {
     public CommandLineServices()
     {
-        currentDataInfo = new CurrentDataInfo() { PlatformName = "", AccountName = "" , index = -1};
+        currentDataInfo = new CurrentDataInfo() { PlatformName = "", AccountName = "", index = -1 };
         UpdateStatus = false;
+        GetInfoProtected = true;
     }
 
-    public bool UpdateStatus { get; set; }
-
-    CurrentDataInfo currentDataInfo;
-
-    public async Task<bool> CommandHandler(string command)
+    public bool UpdateStatus
     {
+        get; set;
+    }
+
+    public bool GetInfoProtected
+    {
+        get; set;
+    }
+
+    private CurrentDataInfo currentDataInfo;
+
+    /// <summary>
+    /// 控制台命令处理
+    /// </summary>
+    /// <param name="command">输入的命令</param>
+    /// <returns>无意义的可等待值</returns>
+    public async Task<bool> CommandHandler(string? command)
+    {
+        if (!GetInfoProtected)
+        {
+            ConsoleHelper.PasswordLineProtect(5);
+            GetInfoProtected = true;
+        }
         if (string.IsNullOrWhiteSpace(command))
         {
             return false;
@@ -41,6 +57,12 @@ public class CommandLineServices
                 case "-l":
                     ListHandler();
                     return true;
+                case "-a":
+                    AddOptionhandler(buffer);
+                    return true;
+                case "-d":
+                    PrintDeveloping();
+                    return true;
                 case "-u":
                     UpdateOptionHandler(buffer);
                     return true;
@@ -57,7 +79,7 @@ public class CommandLineServices
                     PrintDeveloping();
                     return true;
                 default:
-                    Console.WriteLine($"Unknown option: \"{buffer[0]}\". Pleae check your input, or type \"help\" or \"-h\" to view command list.");
+                    ConsoleHelper.PrintError($" Unknown option: \"{buffer[0]}\". Pleae check your input, or type \"help\" or \"-h\" to view command list.");
                     return false;
             }
         }
@@ -87,6 +109,9 @@ public class CommandLineServices
                 GeneratePW();
                 return true;
             case "add":
+                AddCommandhandler();
+                return true;
+            case "delete":
                 PrintDeveloping();
                 return true;
             case "update":
@@ -118,18 +143,25 @@ public class CommandLineServices
                 PrintDeveloping();
                 return true;
             default:
-                Console.WriteLine($"Unknown command: \"{command}\". Pleae check your input, or type \"help\" or \"-h\" to view command list.");
+                ConsoleHelper.PrintError($" Unknown command: \"{command}\". Pleae check your input, or type \"help\" or \"-h\" to view command list.");
                 return false;
         }
     }
 
-    public async Task<bool> Exit()
+    /// <summary>
+    /// 安全退出
+    /// </summary>
+    /// <returns>无意义的可等待值</returns>
+    public static async Task<bool> Exit()
     {
         Console.WriteLine("Leaving GoodPass CLI, please wait...");
-        await Task.CompletedTask;
+        await Task.Delay(1000);
         return true;
     }
 
+    /// <summary>
+    /// 打印关于信息
+    /// </summary>
     public static void PrintAbout()
     {
         Console.WriteLine(" GoodPass CLI");
@@ -140,6 +172,9 @@ public class CommandLineServices
         Console.WriteLine();
     }
 
+    /// <summary>
+    /// 打印帮助菜单
+    /// </summary>
     public static void PrintHelp()
     {
         Console.WriteLine("GoodPass CLI Help");
@@ -147,10 +182,13 @@ public class CommandLineServices
         Console.WriteLine("Options:");
         Console.WriteLine("  -h\t\t\t\tShow help information");
         Console.WriteLine("  -s   [content]\t\tSearch by platform name or account name");
-        Console.WriteLine("  -g   [platform] [account]\tGet data with account name an platform name");
-        Console.WriteLine("       [index]\t\t\tGet data with index");
+        Console.WriteLine("  -g   [platform] [account]\tGet data with account name and platform name");
+        Console.WriteLine("  -g   [index]\t\t\tGet data with index");
         Console.WriteLine("  -l\t\t\t\tList all account");
-        Console.WriteLine("  -a\t\t\t\tAdd an account");
+        Console.WriteLine("  -a   [platform] [account]\tAdd an account with 3 or 4 args, [website] is optional");
+        Console.WriteLine("       [password] [website]");
+        Console.WriteLine("  -d   [platform] [account]\tDelete data with account name and platform name");
+        Console.WriteLine("  -d   [index]\t\t\tDelete an account with index");
         Console.WriteLine("  -u   [account index]\t\tOpen update mode with account, default is the recently get account");
         Console.WriteLine("  -rp  [new platform]\t\tReset platform name");
         Console.WriteLine("  -ra  [new account]\t\tReset account name");
@@ -158,7 +196,7 @@ public class CommandLineServices
         Console.WriteLine("  -rpw [new password]\t\tReset password");
         Console.WriteLine("Commands:");
         Console.WriteLine("  help\t\t\tShow help information");
-        Console.WriteLine("  exit\t\t\tExit GoodPass CLI");
+        Console.WriteLine("  exit\t\t\tExit GoodPass CLI(Recommended)");
         Console.WriteLine("  search\t\tSearch by platform name or account name");
         Console.WriteLine("  get\t\t\tGet data with account name an platform name");
         Console.WriteLine("  about\t\t\tShow about information");
@@ -166,6 +204,7 @@ public class CommandLineServices
         Console.WriteLine("  generate\t\tGenerate a password");
         Console.WriteLine("  list\t\t\tList all account");
         Console.WriteLine("  add\t\t\tAdd an account");
+        Console.WriteLine("  delete\t\tDelete an account");
         Console.WriteLine("  update\t\tGo in or go out update mode");
         Console.WriteLine("  exportp\t\tExport all plaintext passwords");
         Console.WriteLine("  exportc\t\tExport all ciphertext passwords");
@@ -177,18 +216,25 @@ public class CommandLineServices
         Console.WriteLine("");
     }
 
+    /// <summary>
+    /// 打印程序欢迎信息
+    /// </summary>
     public static void PrintStart()
     {
         Console.WriteLine($"GoodPass CLI {GoodPass_CLI._version} [.NET {Environment.Version}] on {Environment.OSVersion}");
-        Console.WriteLine("Type \"help\" or \"about\" to get more information.");
+        Console.WriteLine("Type \"help\" or \"about\" to get more information. Type \"exit\" to leave safely.");
     }
 
+    /// <summary>
+    /// 密码生成处理
+    /// </summary>
+    /// <returns>生成的密码</returns>
     public static string GeneratePW()
     {
         Console.WriteLine(" GoodPass Password Generator");
         Console.WriteLine(" Choose generate mode:\n" +
                       "   \"n\" for normal random password\n" +
-                      "   \"s\" for random password with special characters\n" + 
+                      "   \"s\" for random password with special characters\n" +
                       "   \"g\" for GoodPass style string password, require platform and account name");
         Console.Write(" Enter your choice:");
         var choice = Console.ReadLine();
@@ -198,7 +244,7 @@ public class CommandLineServices
                 Console.Write(" Enter password length:");
                 var pwlength1 = Console.ReadLine();
                 string pw1;
-                if (Int32.TryParse(pwlength1, out int length1))
+                if (int.TryParse(pwlength1, out var length1))
                 {
                     if (length1 <= 40 && length1 > 0)
                     {
@@ -230,7 +276,7 @@ public class CommandLineServices
                 Console.Write(" Enter password length:");
                 var pwlength2 = Console.ReadLine();
                 string pw2;
-                if (Int32.TryParse(pwlength2, out int length2))
+                if (int.TryParse(pwlength2, out var length2))
                 {
                     if (length2 <= 40 && length2 > 0)
                     {
@@ -283,11 +329,17 @@ public class CommandLineServices
         }
     }
 
+    /// <summary>
+    /// 打印正在开发中信息
+    /// </summary>
     public static void PrintDeveloping()
     {
         Console.WriteLine("The feature is developing...");
     }
 
+    /// <summary>
+    /// 默认的更新模式
+    /// </summary>
     public void Update()
     {
         if (GoodPass_CLI.manager.GetData(currentDataInfo.index) != null)
@@ -312,6 +364,10 @@ public class CommandLineServices
 
     }
 
+    /// <summary>
+    /// 使用index的更新模式
+    /// </summary>
+    /// <param name="index"></param>
     public void Update(int index)
     {
         var data = GoodPass_CLI.manager.GetData(index);
@@ -351,11 +407,14 @@ public class CommandLineServices
         }
     }
 
+    /// <summary>
+    /// update命令处理
+    /// </summary>
     public void UpdateCommandHandler()
     {
         Console.Write(" Please enter update index, null for default:");
         var indexstr = Console.ReadLine();
-        if (Int32.TryParse(indexstr, out int index))
+        if (int.TryParse(indexstr, out var index))
         {
             Update(index);
         }
@@ -369,7 +428,11 @@ public class CommandLineServices
         }
     }
 
-    public void UpdateOptionHandler(string[]? buffer)
+    /// <summary>
+    /// -u选项处理
+    /// </summary>
+    /// <param name="buffer">输入的选项及参数缓存</param>
+    public void UpdateOptionHandler(string[] buffer)
     {
         if (buffer.Length > 1)
         {
@@ -377,7 +440,7 @@ public class CommandLineServices
                 Update();
             else
             {
-                if (Int32.TryParse(buffer[1], out int index))
+                if (int.TryParse(buffer[1], out var index))
                 {
                     Update(index);
                 }
@@ -391,10 +454,13 @@ public class CommandLineServices
             Update();
     }
 
+    /// <summary>
+    /// list、-l处理
+    /// </summary>
     public static void ListHandler()
     {
         Console.WriteLine(" Data List");
-        Console.WriteLine(" {0,-15}  {1,-20}  {2,-10}  {3,-30}","Platform Name", "Account name", "Index", "Website");
+        Console.WriteLine(" {0,-15}  {1,-20}  {2,-10}  {3,-30}", "Platform Name", "Account name", "Index", "Website");
         var datas = GoodPass_CLI.manager.GetAllDatas();
         var index = 0;
         foreach (var data in datas)
@@ -405,6 +471,10 @@ public class CommandLineServices
         Console.WriteLine();
     }
 
+    /// <summary>
+    /// 使用index的获取
+    /// </summary>
+    /// <param name="index">目标的索引值</param>
     public void Get(int index)
     {
         var data = GoodPass_CLI.manager.GetData(index);
@@ -422,9 +492,15 @@ public class CommandLineServices
             Console.WriteLine(" {0,-15}\t{1,-40}", "Website Link", data.PlatformUrl);
             Console.WriteLine(" {0,-15}\t{1,-40}", "Latest Update", data.LatestUpdateTime);
             Console.WriteLine();
+            GetInfoProtected = false;
         }
     }
 
+    /// <summary>
+    /// 使用名字的获取
+    /// </summary>
+    /// <param name="platformName">目标平台名</param>
+    /// <param name="accountName">目标账号名</param>
     public void Get(string platformName, string accountName)
     {
         var data = GoodPass_CLI.manager.GetData(platformName, accountName);
@@ -442,9 +518,13 @@ public class CommandLineServices
             Console.WriteLine(" {0,-15}\t{1,-40}", "Website Link", data.PlatformUrl);
             Console.WriteLine(" {0,-15}\t{1,-40}", "Latest Update", data.LatestUpdateTime);
             Console.WriteLine();
+            GetInfoProtected = false;
         }
     }
 
+    /// <summary>
+    /// get命令处理
+    /// </summary>
     public void GetCommandhandler()
     {
         Console.Write(" Choose get mode, i for index, n for name:");
@@ -476,7 +556,7 @@ public class CommandLineServices
                     ConsoleHelper.PrintError(" Invalid input: [index] is empty");
                     return;
                 }
-                if (Int32.TryParse(indexstr, out int index))
+                if (int.TryParse(indexstr, out var index))
                 {
                     Get(index);
                     return;
@@ -492,7 +572,11 @@ public class CommandLineServices
         }
     }
 
-    public void GetOptionhandler(string[]? buffer)
+    /// <summary>
+    /// -g选项处理
+    /// </summary>
+    /// <param name="buffer">-g选项及参数缓存</param>
+    public void GetOptionhandler(string[] buffer)
     {
         if (buffer.Length >= 3)
         {
@@ -503,7 +587,7 @@ public class CommandLineServices
             }
             if (string.IsNullOrEmpty(buffer[2]))
             {
-                if (Int32.TryParse(buffer[1], out int index))
+                if (int.TryParse(buffer[1], out var index))
                 {
                     Get(index);
                     return;
@@ -527,7 +611,7 @@ public class CommandLineServices
                 ConsoleHelper.PrintError(" Invalid input: [-g args] is empty");
                 return;
             }
-            if (Int32.TryParse(buffer[1], out int index))
+            if (int.TryParse(buffer[1], out var index))
             {
                 Get(index);
                 return;
@@ -537,6 +621,129 @@ public class CommandLineServices
                 ConsoleHelper.PrintError(" Invalid input: [index] is not a number, please check your input.");
                 return;
             }
+        }
+        else
+        {
+            ConsoleHelper.PrintError(" Invalid input: not enough input arguments");
+            return;
+        }
+    }
+
+    /// <summary>
+    /// 添加数据
+    /// </summary>
+    /// <param name="platformName">平台名</param>
+    /// <param name="accountName">账号名</param>
+    /// <param name="password">密码</param>
+    /// <param name="websiteUrl">(可选)网站地址</param>
+    public static void Add(string platformName, string accountName, string password, string? websiteUrl)
+    {
+        var result = GoodPass_CLI.manager.AddData(platformName, websiteUrl, accountName, password);
+        if (result)
+        {
+            ConsoleHelper.PrintGreen(" Data added successfully");
+            Console.WriteLine();
+        }
+        else
+        {
+            ConsoleHelper.PrintError(" Data already exists, pleas go to update");
+            Console.WriteLine();
+        }
+    }
+
+    public static void AddCommandhandler()
+    {
+        Console.Write(" Please enter platform name:");
+        var platformName = Console.ReadLine();
+        if (string.IsNullOrEmpty(platformName))
+        {
+            ConsoleHelper.PrintError(" Invalid input: [PlatformName] is empty");
+            return;
+        }
+        Console.Write(" Please enter account name:");
+        var accountName = Console.ReadLine();
+        if (string.IsNullOrEmpty(accountName))
+        {
+            ConsoleHelper.PrintError(" Invalid input: [AccountName] is empty");
+            return;
+        }
+        Console.Write(" Please enter password:");
+        var password = Console.ReadLine();
+        if (string.IsNullOrEmpty(password))
+        {
+            ConsoleHelper.PrintError(" Invalid input: [Password] is empty");
+            return;
+        }
+        if (string.IsNullOrWhiteSpace(password))
+        {
+            ConsoleHelper.PrintError(" Invalid input: [Password] is whitespace");
+            return;
+        }
+        Console.Write(" Please enter website url:");
+        var websiteUrl = Console.ReadLine();
+        Add(platformName.Trim(), accountName.Trim(), password.Trim(), websiteUrl);
+        ConsoleHelper.PasswordLineProtect(4);
+    }
+
+    public static void AddOptionhandler(string[] buffer)
+    {
+        const int _line = 2;
+        if (buffer.Length >= 5)
+        {
+            if (string.IsNullOrEmpty(buffer[1]))
+            {
+                ConsoleHelper.PrintError(" Invalid input: [PlatformName] is empty");
+                ConsoleHelper.PasswordCommandProtect(_line);
+                return;
+            }
+            if (string.IsNullOrEmpty(buffer[2]))
+            {
+                ConsoleHelper.PrintError(" Invalid input: [AccountName] is empty");
+                ConsoleHelper.PasswordCommandProtect(_line);
+                return;
+            }
+            if (string.IsNullOrEmpty(buffer[3]))
+            {
+                ConsoleHelper.PrintError(" Invalid input: [Password] is empty");
+                ConsoleHelper.PasswordCommandProtect(_line);
+                return;
+            }
+            if (string.IsNullOrWhiteSpace(buffer[3]))
+            {
+                ConsoleHelper.PrintError(" Invalid input: [Password] is whitespace");
+                return;
+            }
+            Add(buffer[1].Trim(), buffer[2].Trim(), buffer[3].Trim(), buffer[4]);
+            ConsoleHelper.PasswordCommandProtect(_line);
+            return;
+        }
+        else if (buffer.Length == 4)
+        {
+            if (string.IsNullOrEmpty(buffer[1]))
+            {
+                ConsoleHelper.PrintError(" Invalid input: [PlatformName] is empty");
+                ConsoleHelper.PasswordCommandProtect(_line);
+                return;
+            }
+            if (string.IsNullOrEmpty(buffer[2]))
+            {
+                ConsoleHelper.PrintError(" Invalid input: [AccountName] is empty");
+                ConsoleHelper.PasswordCommandProtect(_line);
+                return;
+            }
+            if (!string.IsNullOrEmpty(buffer[3]))
+            {
+                ConsoleHelper.PrintError(" Invalid input: [Password] is empty");
+                return;
+            }
+            if (string.IsNullOrWhiteSpace(buffer[3]))
+            {
+                ConsoleHelper.PrintError(" Invalid input: [Password] is whitespace");
+                return;
+            }
+            Add(buffer[1], buffer[2], buffer[3], null);
+            ConsoleHelper.PasswordCommandProtect(_line);
+            return;
         }
         else
         {

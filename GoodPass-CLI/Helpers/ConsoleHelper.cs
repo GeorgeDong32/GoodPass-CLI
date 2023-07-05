@@ -21,4 +21,34 @@ public static class ConsoleHelper
         Console.WriteLine(message);
         Console.ForegroundColor = ConsoleColor.Gray;
     }
+
+    public static void PasswordLineProtect(int linebefore)
+    {
+        var currentLineCursor = Console.CursorTop;
+        Console.SetCursorPosition(0, currentLineCursor - linebefore);
+        Console.Write(" [ Your password has been protected by GoodPass CLI ]");
+        Console.SetCursorPosition(0, currentLineCursor);
+    }
+
+    public static void PasswordCommandProtect(int linebefore)
+    {
+        var currentLineCursor = Console.CursorTop;
+        Console.SetCursorPosition(0, currentLineCursor - linebefore);
+        Console.Write(">>> [ Your password has been protected by GoodPass CLI ]");
+        Console.SetCursorPosition(0, currentLineCursor);
+    }
+
+    public static void CleanConsoleLine(int lineindex)
+    {
+        var currentLineCursor = Console.CursorTop;
+        Console.SetCursorPosition(0, currentLineCursor - lineindex);
+        ClearCurrentConsoleLine();
+        Console.SetCursorPosition(0, currentLineCursor);
+    }
+
+    public static void ClearCurrentConsoleLine()
+    {
+        Console.SetCursorPosition(0, Console.CursorTop);
+        Console.Write(new string(' ', Console.WindowWidth));
+    }
 }
