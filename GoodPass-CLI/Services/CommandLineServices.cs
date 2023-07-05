@@ -3,6 +3,7 @@
 namespace GoodPass_CLI.Services;
 public class CommandLineServices
 {
+    private static readonly string _dataFilePath = Path.Combine("Data", "GoodPassData.csv");
     public CommandLineServices()
     {
         currentDataInfo = new CurrentDataInfo() { PlatformName = "", AccountName = "", index = -1 };
@@ -31,7 +32,7 @@ public class CommandLineServices
     {
         if (!GetInfoProtected)
         {
-            ConsoleHelper.PasswordLineProtect(5);
+            ConsoleHelper.PasswordLineProtect(5, 1);
             GetInfoProtected = true;
         }
         if (string.IsNullOrWhiteSpace(command))
@@ -47,9 +48,7 @@ public class CommandLineServices
                     PrintHelp();
                     return true;
                 case "-s":
-                    //TODO: 搜索
-                    PrintDeveloping();
-                    await Task.CompletedTask;
+                    SearchOptionHandler(buffer);
                     return true;
                 case "-g":
                     GetOptionhandler(buffer);
@@ -58,26 +57,20 @@ public class CommandLineServices
                     ListHandler();
                     return true;
                 case "-a":
-                    AddOptionhandler(buffer);
-                    return true;
+                    return await AddOptionhandler(buffer);
                 case "-d":
-                    PrintDeveloping();
-                    return true;
+                    return await DeleteOptionHandler(buffer);
                 case "-u":
                     UpdateOptionHandler(buffer);
                     return true;
                 case "-rp":
-                    PrintDeveloping();
-                    return true;
+                    return await RPOptionHandler(buffer);
                 case "-ra":
-                    PrintDeveloping();
-                    return true;
+                    return await RAOptionHandler(buffer);
                 case "-rw":
-                    PrintDeveloping();
-                    return true;
+                    return await RWOptionHandler(buffer);
                 case "-rpw":
-                    PrintDeveloping();
-                    return true;
+                    return await RPWOptionHandler(buffer);
                 default:
                     ConsoleHelper.PrintError($" Unknown option: \"{buffer[0]}\". Pleae check your input, or type \"help\" or \"-h\" to view command list.");
                     return false;
@@ -92,8 +85,7 @@ public class CommandLineServices
                 PrintAbout();
                 return true;
             case "search":
-                //TODO: 搜索
-                PrintDeveloping();
+                SearchCommandHandler();
                 return true;
             case "get":
                 GetCommandhandler();
@@ -109,39 +101,28 @@ public class CommandLineServices
                 GeneratePW();
                 return true;
             case "add":
-                AddCommandhandler();
-                return true;
+                return await AddCommandhandler();
             case "delete":
-                PrintDeveloping();
-                return true;
+                return await DeleteCommandhandler();
             case "update":
                 UpdateCommandHandler();
                 return true;
             case "exportp":
-                PrintDeveloping();
-                return true;
+                return await ExportPlaintext();
             case "exportc":
-                PrintDeveloping();
-                return true;
+                return await ExportCiphertext();
             case "clear":
                 Console.Clear();
                 PrintStart();
                 return true;
             case "reset-platform":
-                PrintDeveloping();
-                return true;
+                return await RPCommandHandler();
             case "reset-account":
-                PrintDeveloping();
-                return true;
+                return await RACommandHandler();
             case "reset-password":
-                PrintDeveloping();
-                return true;
+                return await RPWCommandHandler();
             case "reset-website":
-                PrintDeveloping();
-                return true;
-            case "reset-all":
-                PrintDeveloping();
-                return true;
+                return await RWCommandHandler();
             default:
                 ConsoleHelper.PrintError($" Unknown command: \"{command}\". Pleae check your input, or type \"help\" or \"-h\" to view command list.");
                 return false;
@@ -152,10 +133,12 @@ public class CommandLineServices
     /// 安全退出
     /// </summary>
     /// <returns>无意义的可等待值</returns>
-    public static async Task<bool> Exit()
+    public async Task<bool> Exit()
     {
         Console.WriteLine("Leaving GoodPass CLI, please wait...");
-        await Task.Delay(1000);
+        UpdateStatus = false;
+        await GoodPass_CLI.manager.SaveToFileAsync(_dataFilePath);
+        await Task.Delay(500);
         return true;
     }
 
@@ -212,7 +195,6 @@ public class CommandLineServices
         Console.WriteLine("  reset-account\t\tReset account name");
         Console.WriteLine("  reset-password\tReset password");
         Console.WriteLine("  reset-website\t\tReset website");
-        Console.WriteLine("  reset-all\t\tReset all");
         Console.WriteLine("");
     }
 
@@ -349,11 +331,13 @@ public class CommandLineServices
                 UpdateStatus = true;
                 ConsoleHelper.PrintGreen(" Update mode is actived");
                 Console.WriteLine(" Please use reset options or commands to update data");
+                Console.WriteLine();
             }
             else
             {
                 UpdateStatus = false;
                 ConsoleHelper.PrintWarning(" Upgrade mode is deactivated");
+                Console.WriteLine();
             }
         }
         else
@@ -388,11 +372,13 @@ public class CommandLineServices
                     UpdateStatus = true;
                     ConsoleHelper.PrintGreen(" Update mode is actived");
                     Console.WriteLine(" Please use reset options or commands to update data");
+                    Console.WriteLine();
                 }
                 else
                 {
                     UpdateStatus = false;
                     ConsoleHelper.PrintWarning(" Upgrade mode is deactivated");
+                    Console.WriteLine();
                 }
             }
             else
@@ -403,6 +389,7 @@ public class CommandLineServices
                 currentDataInfo.AccountName = data.AccountName;
                 ConsoleHelper.PrintGreen(" Update mode is actived");
                 Console.WriteLine(" Please use reset options or commands to update data");
+                Console.WriteLine();
             }
         }
     }
@@ -527,7 +514,7 @@ public class CommandLineServices
     /// </summary>
     public void GetCommandhandler()
     {
-        Console.Write(" Choose get mode, i for index, n for name:");
+        Console.Write(" Please choose get mode, i for index, n for name:");
         var mode = Console.ReadLine();
         switch (mode)
         {
@@ -636,56 +623,58 @@ public class CommandLineServices
     /// <param name="accountName">账号名</param>
     /// <param name="password">密码</param>
     /// <param name="websiteUrl">(可选)网站地址</param>
-    public static void Add(string platformName, string accountName, string password, string? websiteUrl)
+    public static async Task<bool> Add(string platformName, string accountName, string password, string? websiteUrl)
     {
         var result = GoodPass_CLI.manager.AddData(platformName, websiteUrl, accountName, password);
         if (result)
         {
+            await GoodPass_CLI.manager.SaveToFileAsync(_dataFilePath);
             ConsoleHelper.PrintGreen(" Data added successfully");
             Console.WriteLine();
+            return true;
         }
         else
         {
             ConsoleHelper.PrintError(" Data already exists, pleas go to update");
             Console.WriteLine();
+            return false;
         }
     }
 
-    public static void AddCommandhandler()
+    public static async Task<bool> AddCommandhandler()
     {
         Console.Write(" Please enter platform name:");
         var platformName = Console.ReadLine();
         if (string.IsNullOrEmpty(platformName))
         {
             ConsoleHelper.PrintError(" Invalid input: [PlatformName] is empty");
-            return;
+            return false;
         }
         Console.Write(" Please enter account name:");
         var accountName = Console.ReadLine();
         if (string.IsNullOrEmpty(accountName))
         {
             ConsoleHelper.PrintError(" Invalid input: [AccountName] is empty");
-            return;
+            return false;
         }
         Console.Write(" Please enter password:");
-        var password = Console.ReadLine();
+        var password = ConsoleHelper.ReadPassword();
         if (string.IsNullOrEmpty(password))
         {
             ConsoleHelper.PrintError(" Invalid input: [Password] is empty");
-            return;
+            return false;
         }
         if (string.IsNullOrWhiteSpace(password))
         {
             ConsoleHelper.PrintError(" Invalid input: [Password] is whitespace");
-            return;
+            return false;
         }
         Console.Write(" Please enter website url:");
         var websiteUrl = Console.ReadLine();
-        Add(platformName.Trim(), accountName.Trim(), password.Trim(), websiteUrl);
-        ConsoleHelper.PasswordLineProtect(4);
+        return await Add(platformName.Trim(), accountName.Trim(), password.Trim(), websiteUrl);
     }
 
-    public static void AddOptionhandler(string[] buffer)
+    public static async Task<bool> AddOptionhandler(string[] buffer)
     {
         const int _line = 2;
         if (buffer.Length >= 5)
@@ -694,28 +683,27 @@ public class CommandLineServices
             {
                 ConsoleHelper.PrintError(" Invalid input: [PlatformName] is empty");
                 ConsoleHelper.PasswordCommandProtect(_line);
-                return;
+                return false;
             }
             if (string.IsNullOrEmpty(buffer[2]))
             {
                 ConsoleHelper.PrintError(" Invalid input: [AccountName] is empty");
                 ConsoleHelper.PasswordCommandProtect(_line);
-                return;
+                return false;
             }
             if (string.IsNullOrEmpty(buffer[3]))
             {
                 ConsoleHelper.PrintError(" Invalid input: [Password] is empty");
                 ConsoleHelper.PasswordCommandProtect(_line);
-                return;
+                return false;
             }
             if (string.IsNullOrWhiteSpace(buffer[3]))
             {
                 ConsoleHelper.PrintError(" Invalid input: [Password] is whitespace");
-                return;
+                return false;
             }
-            Add(buffer[1].Trim(), buffer[2].Trim(), buffer[3].Trim(), buffer[4]);
-            ConsoleHelper.PasswordCommandProtect(_line);
-            return;
+            ConsoleHelper.PasswordCommandProtect(1);
+            return await Add(buffer[1].Trim(), buffer[2].Trim(), buffer[3].Trim(), buffer[4]);
         }
         else if (buffer.Length == 4)
         {
@@ -723,32 +711,582 @@ public class CommandLineServices
             {
                 ConsoleHelper.PrintError(" Invalid input: [PlatformName] is empty");
                 ConsoleHelper.PasswordCommandProtect(_line);
-                return;
+                return false;
             }
             if (string.IsNullOrEmpty(buffer[2]))
             {
                 ConsoleHelper.PrintError(" Invalid input: [AccountName] is empty");
                 ConsoleHelper.PasswordCommandProtect(_line);
-                return;
+                return false;
             }
-            if (!string.IsNullOrEmpty(buffer[3]))
+            if (string.IsNullOrEmpty(buffer[3]))
             {
                 ConsoleHelper.PrintError(" Invalid input: [Password] is empty");
-                return;
+                return false;
             }
             if (string.IsNullOrWhiteSpace(buffer[3]))
             {
                 ConsoleHelper.PrintError(" Invalid input: [Password] is whitespace");
+                return false;
+            }
+            ConsoleHelper.PasswordCommandProtect(1);
+            return await Add(buffer[1], buffer[2], buffer[3], null);
+        }
+        else
+        {
+            ConsoleHelper.PrintError(" Invalid input: not enough input arguments");
+            return false;
+        }
+    }
+
+    public static void Search(string content)
+    {
+        var datalist = GoodPass_CLI.manager.SuggestSearch(content);
+        if (datalist.Count == 0)
+        {
+            ConsoleHelper.PrintWarning(" No related data found");
+            Console.WriteLine();
+            return;
+        }
+        else
+        {
+            Console.WriteLine(" Releated data list");
+            Console.WriteLine(" {0,-15}  {1,-20}  {2,-10}  {3,-30}", "Platform Name", "Account name", "Index", "Website");
+            var index = 0;
+            foreach (var data in datalist)
+            {
+                Console.WriteLine(" {0,-15}  {1,-20}  {2,-10}  {3,-30}", data.PlatformName, data.AccountName, index, data.PlatformUrl);
+                index++;
+            }
+            Console.WriteLine();
+        }
+    }
+
+    public static void SearchCommandHandler()
+    {
+        Console.Write(" Please enter search content:");
+        var content = Console.ReadLine();
+        if (string.IsNullOrEmpty(content))
+        {
+            ConsoleHelper.PrintError(" Invalid input: [content] is empty");
+            return;
+        }
+        Search(content);
+    }
+
+    public static void SearchOptionHandler(string[] buffer)
+    {
+        if (buffer.Length >= 2)
+        {
+            if (string.IsNullOrEmpty(buffer[1]))
+            {
+                ConsoleHelper.PrintError(" Invalid input: [content] is empty");
                 return;
             }
-            Add(buffer[1], buffer[2], buffer[3], null);
-            ConsoleHelper.PasswordCommandProtect(_line);
+            Search(buffer[1]);
             return;
         }
         else
         {
             ConsoleHelper.PrintError(" Invalid input: not enough input arguments");
             return;
+        }
+    }
+
+    public static async Task<bool> Delete(int index)
+    {
+        if (index < 0)
+        {
+            ConsoleHelper.PrintError(" Invalid input: [index] is less than 0");
+            return false;
+        }
+        var result = GoodPass_CLI.manager.DeleteData(index);
+        if (result)
+        {
+            ConsoleHelper.PrintGreen(" Data has been successfully deleted");
+            Console.WriteLine();
+            return await GoodPass_CLI.manager.SaveToFileAsync(_dataFilePath);
+        }
+        else
+        {
+            ConsoleHelper.PrintError(" Data deletion failed, please check whether the index is correct");
+            Console.WriteLine();
+            return false;
+        }
+    }
+
+    public static async Task<bool> Delete(string platformName, string accountName)
+    {
+        if (string.IsNullOrEmpty(platformName))
+        {
+            ConsoleHelper.PrintError(" Invalid input: [PlatformName] is empty");
+            return false;
+        }
+        if (string.IsNullOrEmpty(accountName))
+        {
+            ConsoleHelper.PrintError(" Invalid input: [AccountName] is empty");
+            return false;
+        }
+        var result = GoodPass_CLI.manager.DeleteData(platformName, accountName);
+        if (result)
+        {
+            ConsoleHelper.PrintGreen(" Data has been successfully deleted");
+            Console.WriteLine();
+            return await GoodPass_CLI.manager.SaveToFileAsync(_dataFilePath);
+        }
+        else
+        {
+            ConsoleHelper.PrintError(" Data deletion failed, please check whether the index is correct");
+            Console.WriteLine();
+            return false;
+        }
+    }
+
+    public static async Task<bool> DeleteCommandhandler()
+    {
+        Console.Write(" Please choose delete mode, i for index, n for name:");
+        var mode = Console.ReadLine();
+        switch (mode)
+        {
+            case "i":
+                Console.Write(" Please enter index:");
+                var indexstr = Console.ReadLine();
+                if (string.IsNullOrEmpty(indexstr))
+                {
+                    ConsoleHelper.PrintError(" Invalid input: [index] is empty");
+                    return false;
+                }
+                if (int.TryParse(indexstr, out var index))
+                {
+                    return await Delete(index);
+                }
+                else
+                {
+                    ConsoleHelper.PrintError(" Invalid input: [index] is not a number");
+                    return false;
+                }
+            case "n":
+                Console.Write(" Please enter platform name:");
+                var platformName = Console.ReadLine();
+                if (string.IsNullOrEmpty(platformName))
+                {
+                    ConsoleHelper.PrintError(" Invalid input: [PlatformName] is empty");
+                    return false;
+                }
+                Console.Write(" Please enter account name:");
+                var accountName = Console.ReadLine();
+                if (string.IsNullOrEmpty(accountName))
+                {
+                    ConsoleHelper.PrintError(" Invalid input: [AccountName] is empty");
+                    return false;
+                }
+                return await Delete(platformName, accountName);
+            default:
+                ConsoleHelper.PrintError(" Invalid input: [mode] is not i or n");
+                return false;
+        }
+    }
+
+    public static async Task<bool> DeleteOptionHandler(string[] buffer)
+    {
+        if (buffer.Length >= 3)
+        {
+            if (string.IsNullOrEmpty(buffer[1]))
+            {
+                ConsoleHelper.PrintError(" Invalid input: [PlatformName] is empty");
+                return false;
+            }
+            if (string.IsNullOrEmpty(buffer[2]))
+            {
+                ConsoleHelper.PrintError(" Invalid input: [AccountName] is empty");
+                return false;
+            }
+            return await Delete(buffer[1], buffer[2]);
+        }
+        else if (buffer.Length == 2)
+        {
+            if (string.IsNullOrEmpty(buffer[1]))
+            {
+                ConsoleHelper.PrintError(" Invalid input: [index] is empty");
+                return false;
+            }
+            if (int.TryParse(buffer[1], out var index))
+            {
+                return await Delete(index);
+            }
+            else
+            {
+                ConsoleHelper.PrintError(" Invalid input: [index] is not a number");
+                return false;
+            }
+        }
+        else
+        {
+            ConsoleHelper.PrintError(" Invalid input: not enough input arguments");
+            return false;
+        }
+    }
+
+    public async Task<bool> ResetPlatform(string newplatform)
+    {
+        var platform = currentDataInfo.PlatformName;
+        if (newplatform == platform)
+        {
+            ConsoleHelper.PrintError(" Reset failed: Same platform name");
+            Console.WriteLine();
+            return false;
+        }
+        var account = currentDataInfo.AccountName;
+#pragma warning disable CS8604 // 引用类型参数可能为 null。
+#pragma warning disable CS8604 // 引用类型参数可能为 null。
+        var result = GoodPass_CLI.manager.ChangePlatformName(platform, account, newplatform);
+#pragma warning restore CS8604 // 引用类型参数可能为 null。
+#pragma warning restore CS8604 // 引用类型参数可能为 null。
+        if (result)
+        {
+            currentDataInfo.index = GoodPass_CLI.manager.AccurateSearch(newplatform, account);
+            currentDataInfo.PlatformName = newplatform;
+            currentDataInfo.AccountName = account;
+            ConsoleHelper.PrintGreen(" Successfully reset platform name");
+            Console.WriteLine();
+            return await GoodPass_CLI.manager.SaveToFileAsync(_dataFilePath);
+        }
+        else
+        {
+            ConsoleHelper.PrintError(" Reset failed: account is already exist in new platform");
+            Console.WriteLine();
+            return false;
+        }
+    }
+
+    public async Task<bool> RPCommandHandler()
+    {
+        if (UpdateStatus)
+        {
+            Console.Write(" Please enter new platform name:");
+            var newplatform = Console.ReadLine();
+            if (string.IsNullOrEmpty(newplatform))
+            {
+                ConsoleHelper.PrintError(" Invalid input: [new platform] is empty");
+                Console.WriteLine();
+                return false;
+            }
+            return await ResetPlatform(newplatform);
+        }
+        else
+        {
+            ConsoleHelper.PrintError(" Please go in update mode first");
+            Console.WriteLine();
+            return false;
+        }
+    }
+
+    public async Task<bool> RPOptionHandler(string[] buffer)
+    {
+        if (UpdateStatus)
+        {
+            if (buffer.Length >= 2)
+            {
+                if (string.IsNullOrEmpty(buffer[1]))
+                {
+                    ConsoleHelper.PrintError(" Invalid input: [new platform] is empty");
+                    Console.WriteLine();
+                    return false;
+                }
+                return await ResetPlatform(buffer[1]);
+            }
+            else
+            {
+                ConsoleHelper.PrintError(" Invalid input: not enough input arguments");
+                Console.WriteLine();
+                return false;
+            }
+        }
+        else
+        {
+            ConsoleHelper.PrintError(" Please go in update mode first");
+            Console.WriteLine();
+            return false;
+        }
+    }
+
+    public async Task<bool> ResetAccount(string newaccount)
+    {
+        var platform = currentDataInfo.PlatformName;
+        var account = currentDataInfo.AccountName;
+#pragma warning disable CS8604 // 引用类型参数可能为 null。
+#pragma warning disable CS8604 // 引用类型参数可能为 null。
+        var result = GoodPass_CLI.manager.ChangeAccountName(platform, account, newaccount);
+#pragma warning restore CS8604 // 引用类型参数可能为 null。
+#pragma warning restore CS8604 // 引用类型参数可能为 null。
+        if (result)
+        {
+            currentDataInfo.index = GoodPass_CLI.manager.AccurateSearch(platform, newaccount);
+            currentDataInfo.PlatformName = platform;
+            currentDataInfo.AccountName = newaccount;
+            ConsoleHelper.PrintGreen(" Successfully reset account name");
+            Console.WriteLine();
+            return await GoodPass_CLI.manager.SaveToFileAsync(_dataFilePath);
+        }
+        else
+        {
+            ConsoleHelper.PrintError(" Reset failed: account is already exist");
+            Console.WriteLine();
+            return false;
+        }
+    }
+
+    public async Task<bool> RACommandHandler()
+    {
+        if (UpdateStatus)
+        {
+            Console.Write(" Please enter new account name:");
+            var newaccount = Console.ReadLine();
+            if (string.IsNullOrEmpty(newaccount))
+            {
+                ConsoleHelper.PrintError(" Invalid input: [new account] is empty");
+                Console.WriteLine();
+                return false;
+            }
+            return await ResetAccount(newaccount);
+        }
+        else
+        {
+            ConsoleHelper.PrintError(" Please go in update mode first");
+            Console.WriteLine();
+            return false;
+        }
+    }
+
+    public async Task<bool> RAOptionHandler(string[] buffer)
+    {
+        if (UpdateStatus)
+        {
+            if (buffer.Length >= 2)
+            {
+                if (string.IsNullOrEmpty(buffer[1]))
+                {
+                    ConsoleHelper.PrintError(" Invalid input: [new account] is empty");
+                    Console.WriteLine();
+                    return false;
+                }
+                return await ResetAccount(buffer[1]);
+            }
+            else
+            {
+                ConsoleHelper.PrintError(" Invalid input: not enough input arguments");
+                Console.WriteLine();
+                return false;
+            }
+        }
+        else
+        {
+            ConsoleHelper.PrintError(" Please go in update mode first");
+            Console.WriteLine();
+            return false;
+        }
+    }
+
+    public async Task<bool> ResetPassword(string? newpassword)
+    {
+        var platform = currentDataInfo.PlatformName;
+        var account = currentDataInfo.AccountName;
+#pragma warning disable CS8604 // 引用类型参数可能为 null。
+#pragma warning disable CS8604 // 引用类型参数可能为 null。
+#pragma warning disable CS8604 // 引用类型参数可能为 null。
+        var result = GoodPass_CLI.manager.ChangePassword(platform, account, newpassword);
+#pragma warning restore CS8604 // 引用类型参数可能为 null。
+#pragma warning restore CS8604 // 引用类型参数可能为 null。
+#pragma warning restore CS8604 // 引用类型参数可能为 null。
+        switch (result)
+        {
+            case "Success":
+                ConsoleHelper.PrintGreen(" Successfully reset password");
+                Console.WriteLine();
+                return await GoodPass_CLI.manager.SaveToFileAsync(_dataFilePath);
+            case "SamePassword":
+                ConsoleHelper.PrintError(" Reset failed: same password");
+                Console.WriteLine();
+                return false;
+            case "Empty":
+                ConsoleHelper.PrintError(" Reset failed: empty password");
+                Console.WriteLine();
+                return false;
+            default:
+                ConsoleHelper.PrintError(" Reset failed: unknown error");
+                Console.WriteLine();
+                return false;
+        }
+    }
+
+    public async Task<bool> RPWCommandHandler()
+    {
+        if (UpdateStatus)
+        {
+            Console.Write(" Please enter new password:");
+            var newpassword = ConsoleHelper.ReadPassword();
+#pragma warning disable CS8602 // 解引用可能出现空引用。
+            if (newpassword.Length >= 40)
+            {
+                ConsoleHelper.PrintError(" Invalid input: [new password] is too long");
+                Console.WriteLine();
+                return false;
+            }
+#pragma warning restore CS8602 // 解引用可能出现空引用。
+            return await ResetPassword(newpassword);
+        }
+        else
+        {
+            ConsoleHelper.PrintError(" Please go in update mode first");
+            Console.WriteLine();
+            return false;
+        }
+    }
+
+    public async Task<bool> RPWOptionHandler(string[] buffer)
+    {
+        ConsoleHelper.PasswordCommandProtect(1);
+        if (UpdateStatus)
+        {
+            if (buffer.Length >= 2)
+            {
+                if (string.IsNullOrEmpty(buffer[1]))
+                {
+                    ConsoleHelper.PrintError(" Invalid input: [new password] is empty");
+                    Console.WriteLine();
+                    return false;
+                }
+                if (buffer[1].Length >= 40)
+                {
+                    ConsoleHelper.PrintError(" Invalid input: [new password] is too long");
+                    Console.WriteLine();
+                    return false;
+                }
+                return await ResetPassword(buffer[1]);
+            }
+            else
+            {
+                ConsoleHelper.PrintError(" Invalid input: not enough input arguments");
+                Console.WriteLine();
+                return false;
+            }
+        }
+        else
+        {
+            ConsoleHelper.PrintError(" Please go in update mode first");
+            Console.WriteLine();
+            return false;
+        }
+    }
+
+    public async Task<bool> ResetWebsite(string? newurl)
+    {
+        var platform = currentDataInfo.PlatformName;
+        var account = currentDataInfo.AccountName;
+#pragma warning disable CS8604 // 引用类型参数可能为 null。
+#pragma warning disable CS8604 // 引用类型参数可能为 null。
+#pragma warning disable CS8604 // 引用类型参数可能为 null。
+        var result = GoodPass_CLI.manager.ChangeUrl(platform, account, newurl);
+#pragma warning restore CS8604 // 引用类型参数可能为 null。
+#pragma warning restore CS8604 // 引用类型参数可能为 null。
+#pragma warning restore CS8604 // 引用类型参数可能为 null。
+        if (result)
+        {
+            ConsoleHelper.PrintGreen(" Successfully reset website");
+            Console.WriteLine();
+            return await GoodPass_CLI.manager.SaveToFileAsync(_dataFilePath);
+        }
+        else
+        {
+            ConsoleHelper.PrintError(" Reset failed: same website url");
+            Console.WriteLine();
+            return false;
+        }
+    }
+
+    public async Task<bool> RWCommandHandler()
+    {
+        if (UpdateStatus)
+        {
+            Console.Write(" Please enter new website:");
+            var newurl = Console.ReadLine();
+            return await ResetWebsite(newurl);
+        }
+        else
+        {
+            ConsoleHelper.PrintError(" Please go in update mode first");
+            Console.WriteLine();
+            return false;
+        }
+    }
+
+    public async Task<bool> RWOptionHandler(string[] buffer)
+    {
+        if (UpdateStatus)
+        {
+            if (buffer.Length >= 2)
+            {
+                return await ResetWebsite(buffer[1]);
+            }
+            else
+            {
+                ConsoleHelper.PrintError(" Invalid input: not enough input arguments");
+                Console.WriteLine();
+                return false;
+            }
+        }
+        else
+        {
+            ConsoleHelper.PrintError(" Please go in update mode first");
+            Console.WriteLine();
+            return false;
+        }
+    }
+
+    public async Task<bool> ExportPlaintext()
+    {
+        Console.Write(" Please enter path to export file:");
+        var path = Console.ReadLine();
+        if (string.IsNullOrEmpty(path) || string.IsNullOrWhiteSpace(path))
+        {
+            ConsoleHelper.PrintError(" Invalid input: [path] is empty");
+            Console.WriteLine();
+            return false;
+        }
+        if (!Directory.Exists(Path.GetDirectoryName(path)))
+        {
+            ConsoleHelper.PrintError(" Invalid input: [path] is not found");
+            Console.WriteLine();
+            return false;
+        }
+        else
+        {
+            File.Create(Path.Combine(path, "GoodPassData.plaintext.csv")).Close();
+            GoodPass_CLI.manager.DecryptAllDatas();
+            return await GoodPass_CLI.manager.SavePlaintextToFile(Path.Combine(path, "GoodPassData.plaintext.csv"));
+        }
+    }
+
+    public async Task<bool> ExportCiphertext()
+    {
+        Console.Write(" Please enter path to export file:");
+        var path = Console.ReadLine();
+        if (string.IsNullOrEmpty(path) || string.IsNullOrWhiteSpace(path))
+        {
+            ConsoleHelper.PrintError(" Invalid input: [path] is empty");
+            Console.WriteLine();
+            return false;
+        }
+        if (!Directory.Exists(Path.GetDirectoryName(path)))
+        {
+            ConsoleHelper.PrintError(" Invalid input: [path] is not found");
+            Console.WriteLine();
+            return false;
+        }
+        else
+        {
+            File.Create(Path.Combine(path, "GoodPassData.ciphertext.csv")).Close();
+            return await GoodPass_CLI.manager.SaveToFileAsync(Path.Combine(path, "GoodPassData.ciphertext.csv"));
         }
     }
 }

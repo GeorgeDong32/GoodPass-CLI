@@ -19,7 +19,11 @@ public static class GoodPassCryptographicServices
         {
             throw new ArgumentNullException("DecryptStr: input is null or empty");
         }
+#pragma warning disable CS8604 // 引用类型参数可能为 null。
+#pragma warning disable CS8604 // 引用类型参数可能为 null。
         ciphertext = GoodPassAESServices.DecryptFromBase64(ciphertext, GoodPass_CLI.AESKey, GoodPass_CLI.AESIV);
+#pragma warning restore CS8604 // 引用类型参数可能为 null。
+#pragma warning restore CS8604 // 引用类型参数可能为 null。
         var decStr = "";
         var baseStr = "";
         var cryptBase = GoodPass_CLI.EncryptBase;
@@ -61,20 +65,28 @@ public static class GoodPassCryptographicServices
                 switch (i % 2)
                 {
                     case 0:
+#pragma warning disable CS8602 // 解引用可能出现空引用。
                         decStr += (char)(baseStr[i] - 'e' - cryptBase[i] + '0');
+#pragma warning restore CS8602 // 解引用可能出现空引用。
                         break;
                     case 1:
+#pragma warning disable CS8602 // 解引用可能出现空引用。
                         decStr += (char)(baseStr[i] - 'O' - cryptBase[i] + '0');
+#pragma warning restore CS8602 // 解引用可能出现空引用。
                         break;
                 }
             }
             else if (Array.FindIndex(SpecPos, 1, p => p == i) != -1)
             {
+#pragma warning disable CS8602 // 解引用可能出现空引用。
                 decStr += (char)(baseStr[i] - cryptBase[i]);
+#pragma warning restore CS8602 // 解引用可能出现空引用。
             }
             else
             {
+#pragma warning disable CS8602 // 解引用可能出现空引用。
                 var temp = baseStr[i] - cryptBase[i];
+#pragma warning restore CS8602 // 解引用可能出现空引用。
                 if (temp >= 65 && temp <= 90)
                 {
                     decStr += (char)(temp + 32);
@@ -131,11 +143,15 @@ public static class GoodPassCryptographicServices
             {
                 if (i % 2 == 0)
                 {
+#pragma warning disable CS8602 // 解引用可能出现空引用。
                     temp = 'e' + temp - '0' + cryptBase[i];
+#pragma warning restore CS8602 // 解引用可能出现空引用。
                 }
                 else
                 {
+#pragma warning disable CS8602 // 解引用可能出现空引用。
                     temp = 'O' + temp - '0' + cryptBase[i];
+#pragma warning restore CS8602 // 解引用可能出现空引用。
                 }
 
                 output += (char)temp;
@@ -144,18 +160,24 @@ public static class GoodPassCryptographicServices
             else if (temp >= 65 && temp <= 90)
             {
                 temp += 32;
+#pragma warning disable CS8602 // 解引用可能出现空引用。
                 output += (char)(temp + cryptBase[i]);
+#pragma warning restore CS8602 // 解引用可能出现空引用。
             }
             //小写字母加密
             else if (temp >= 97 && temp <= 122)
             {
                 temp -= 32;
+#pragma warning disable CS8602 // 解引用可能出现空引用。
                 output += (char)(temp + cryptBase[i]);
+#pragma warning restore CS8602 // 解引用可能出现空引用。
             }
             //特殊字符
             else
             {
+#pragma warning disable CS8602 // 解引用可能出现空引用。
                 output += (char)(temp + cryptBase[i]);
+#pragma warning restore CS8602 // 解引用可能出现空引用。
                 SpecPos[specCount] = i;
                 specCount++;
                 SpecPos[0]++;
@@ -184,7 +206,11 @@ public static class GoodPassCryptographicServices
         }
         tail += (char)(SpecPos[0] + 65);
         output = head + output + tail;
+#pragma warning disable CS8604 // 引用类型参数可能为 null。
+#pragma warning disable CS8604 // 引用类型参数可能为 null。
         output = GoodPassAESServices.EncryptToBase64(output, GoodPass_CLI.AESKey, GoodPass_CLI.AESIV);
+#pragma warning restore CS8604 // 引用类型参数可能为 null。
+#pragma warning restore CS8604 // 引用类型参数可能为 null。
         return output;
     }
     #endregion

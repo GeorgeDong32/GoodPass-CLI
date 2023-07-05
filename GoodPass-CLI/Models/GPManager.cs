@@ -167,6 +167,16 @@ public class GPManager
         return false;
     }
 
+    public bool DeleteData(int index)
+    {
+        if (index < 0 || index >= GPDatas.Count)
+        {
+            return false;
+        }
+        GPDatas.RemoveAt(index);
+        return true;
+    }
+
     #endregion
 
     #region Change Data Methods
@@ -181,18 +191,26 @@ public class GPManager
     {
         if (platformName == newPlatformName)
             return false;
-        var targetIndex = AccurateSearch(platformName, accountName);
-        if (targetIndex == -1)
+        var checkIndex = AccurateSearch(newPlatformName, accountName);
+        if (checkIndex == -1)
         {
-            return false;
+            var targetIndex = AccurateSearch(platformName, accountName);
+            if (targetIndex == -1)
+            {
+                return false;
+            }
+            else
+            {
+                GPDatas[targetIndex].DataDecrypt();
+                var password = GPDatas[targetIndex].GetPassword;
+                var platformUrl = GPDatas[targetIndex].PlatformUrl;
+                DeleteData(platformName, accountName);
+                return AddData(newPlatformName, platformUrl, accountName, password);
+            }
         }
         else
         {
-            GPDatas[targetIndex].DataDecrypt();
-            var password = GPDatas[targetIndex].GetPassword;
-            var platformUrl = GPDatas[targetIndex].PlatformUrl;
-            DeleteData(platformName, accountName);
-            return AddData(newPlatformName, platformUrl, accountName, password);
+            return false;
         }
     }
 
@@ -274,9 +292,6 @@ public class GPManager
     /// <returns>加载结果</returns>
     public bool LoadFormFile(string filePath)//从文件导入数据
     {
-        var userName = Environment.UserName;
-        var appdataPath = $"C:\\Users\\{userName}\\AppData\\Local";
-        var gpFolderPath = Path.Combine(appdataPath, "GoodPass", "GoodPass-CLI");
         if (File.Exists(filePath))
         {
             if (GPDatas.Count != 0)
@@ -292,31 +307,8 @@ public class GPManager
         }
         else
         {
-            if (Directory.Exists(gpFolderPath))
-            {
-                File.Create(filePath).Close();
-                return true;
-            }
-            else
-            {
-                Directory.CreateDirectory(gpFolderPath);
-                if (System.IO.Directory.Exists(gpFolderPath))
-                {
-                    System.IO.File.Create(filePath).Close();
-                    if (System.IO.File.Exists(filePath))
-                    {
-                        return true;
-                    }
-                    else
-                    {
-                        throw new Exception("Failed to create config file!");
-                    }
-                }
-                else
-                {
-                    throw new Exception("Failed to create config file!");
-                }
-            }
+            File.Create(filePath).Close();
+            return false;
         }
     }
 

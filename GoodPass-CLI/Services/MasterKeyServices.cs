@@ -12,13 +12,12 @@ public static class MasterKeyService
     /// <param name="MasterKey">主密码</param>
     public static bool SetLocalMKHash(string MasterKey)
     {
-        var appdataPath = $"C:\\Users\\{Environment.UserName}\\AppData\\Local";
-        var GoodPassFolderPath = Path.Combine(appdataPath, "GoodPass", "GoodPass-CLI");
-        var MKconfigPath = Path.Combine(GoodPassFolderPath, "MKconfig.txt");
-        if (!System.IO.Directory.Exists(GoodPassFolderPath))
+        var dataPath = Path.Combine("Data");
+        var MKconfigPath = Path.Combine(dataPath, "MKconfig.txt");
+        if (!System.IO.Directory.Exists(dataPath))
         {
-            System.IO.Directory.CreateDirectory(GoodPassFolderPath);
-            if (System.IO.Directory.Exists(GoodPassFolderPath))
+            System.IO.Directory.CreateDirectory(dataPath);
+            if (System.IO.Directory.Exists(dataPath))
             {
                 System.IO.File.Create(MKconfigPath).Close();
                 if (System.IO.File.Exists(MKconfigPath))
@@ -38,7 +37,7 @@ public static class MasterKeyService
                 throw new Exception("Failed to create data folder!");
             }
         }
-        else if (System.IO.Directory.Exists(GoodPassFolderPath))
+        else if (System.IO.Directory.Exists(dataPath))
         {
             if (!System.IO.File.Exists(MKconfigPath))
             {
@@ -72,7 +71,7 @@ public static class MasterKeyService
     /// <returns>本地哈希校验值</returns>
     public static async Task<string> GetLocalMKHashAsync()/*ToDo：通过RATAsync的异常机制精简方法*/
     {
-        var MKconfigPath = Path.Combine($"C:\\Users\\{Environment.UserName}\\AppData\\Local", "GoodPass", "GoodPass-CLI", "MKconfig.txt");
+        var MKconfigPath = Path.Combine("Data", "MKconfig.txt");
         var localMKHash = string.Empty;
         try
         {
@@ -105,8 +104,12 @@ public static class MasterKeyService
     {
         if (string.IsNullOrEmpty(inputKey))
         {
+#pragma warning disable CS8625 // 无法将 null 字面量转换为非 null 的引用类型。
             AESIV = null;
+#pragma warning restore CS8625 // 无法将 null 字面量转换为非 null 的引用类型。
+#pragma warning disable CS8625 // 无法将 null 字面量转换为非 null 的引用类型。
             AESKey = null;
+#pragma warning restore CS8625 // 无法将 null 字面量转换为非 null 的引用类型。
             MKBase = new int[40] { 1, 4, 1, 5, 9, 2, 6, 5, 3, 5, 8, 9, 7, 9, 3, 2, 3, 8, 4, 6, 2, 6, 4, 3, 3, 8, 3, 2, 7, 9, 5, 0, 2, 8, 8, 4, 1, 9, 7, 1 };
             return "npass";
         }
@@ -121,29 +124,45 @@ public static class MasterKeyService
         }
         else if (LocalMKHash == "Not found")
         {
+#pragma warning disable CS8625 // 无法将 null 字面量转换为非 null 的引用类型。
             AESIV = null;
+#pragma warning restore CS8625 // 无法将 null 字面量转换为非 null 的引用类型。
+#pragma warning disable CS8625 // 无法将 null 字面量转换为非 null 的引用类型。
             AESKey = null;
+#pragma warning restore CS8625 // 无法将 null 字面量转换为非 null 的引用类型。
             MKBase = new int[40] { 1, 4, 1, 5, 9, 2, 6, 5, 3, 5, 8, 9, 7, 9, 3, 2, 3, 8, 4, 6, 2, 6, 4, 3, 3, 8, 3, 2, 7, 9, 5, 0, 2, 8, 8, 4, 1, 9, 7, 1 };
             return "error: not found";
         }
-        else if (LocalMKHash == String.Empty)
+        else if (LocalMKHash == "Empty")
         {
+#pragma warning disable CS8625 // 无法将 null 字面量转换为非 null 的引用类型。
             AESIV = null;
+#pragma warning restore CS8625 // 无法将 null 字面量转换为非 null 的引用类型。
+#pragma warning disable CS8625 // 无法将 null 字面量转换为非 null 的引用类型。
             AESKey = null;
+#pragma warning restore CS8625 // 无法将 null 字面量转换为非 null 的引用类型。
             MKBase = new int[40] { 1, 4, 1, 5, 9, 2, 6, 5, 3, 5, 8, 9, 7, 9, 3, 2, 3, 8, 4, 6, 2, 6, 4, 3, 3, 8, 3, 2, 7, 9, 5, 0, 2, 8, 8, 4, 1, 9, 7, 1 };
             return "error: data broken";
         }
         else if (InputKeyHash != LocalMKHash)
         {
+#pragma warning disable CS8625 // 无法将 null 字面量转换为非 null 的引用类型。
             AESIV = null;
+#pragma warning restore CS8625 // 无法将 null 字面量转换为非 null 的引用类型。
+#pragma warning disable CS8625 // 无法将 null 字面量转换为非 null 的引用类型。
             AESKey = null;
+#pragma warning restore CS8625 // 无法将 null 字面量转换为非 null 的引用类型。
             MKBase = new int[40] { 1, 4, 1, 5, 9, 2, 6, 5, 3, 5, 8, 9, 7, 9, 3, 2, 3, 8, 4, 6, 2, 6, 4, 3, 3, 8, 3, 2, 7, 9, 5, 0, 2, 8, 8, 4, 1, 9, 7, 1 };
             return "npass";
         }
         else
         {
+#pragma warning disable CS8625 // 无法将 null 字面量转换为非 null 的引用类型。
             AESIV = null;
+#pragma warning restore CS8625 // 无法将 null 字面量转换为非 null 的引用类型。
+#pragma warning disable CS8625 // 无法将 null 字面量转换为非 null 的引用类型。
             AESKey = null;
+#pragma warning restore CS8625 // 无法将 null 字面量转换为非 null 的引用类型。
             MKBase = new int[40] { 1, 4, 1, 5, 9, 2, 6, 5, 3, 5, 8, 9, 7, 9, 3, 2, 3, 8, 4, 6, 2, 6, 4, 3, 3, 8, 3, 2, 7, 9, 5, 0, 2, 8, 8, 4, 1, 9, 7, 1 };
             return "Unknown Error";
         }
