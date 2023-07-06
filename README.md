@@ -1,4 +1,4 @@
-# GoodPass-v2
+# GoodPass-CLI
 <h1 align="center">
   <img src="https://github.com/GeorgeDong32/GoodPass/blob/resource/Title%20Photo/GoodPass3.0_Developer.png" alt="GoodPass" width="400">
 </h1>
