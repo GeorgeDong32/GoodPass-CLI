@@ -12,7 +12,7 @@ public static class MasterKeyService
     /// <param name="MasterKey">主密码</param>
     public static bool SetLocalMKHash(string MasterKey)
     {
-        var dataPath = Path.Combine("Data");
+        var dataPath = Path.Combine(Environment.CurrentDirectory, "Data");
         var MKconfigPath = Path.Combine(dataPath, "MKconfig.txt");
         if (!System.IO.Directory.Exists(dataPath))
         {
@@ -71,7 +71,7 @@ public static class MasterKeyService
     /// <returns>本地哈希校验值</returns>
     public static async Task<string> GetLocalMKHashAsync()/*ToDo：通过RATAsync的异常机制精简方法*/
     {
-        var MKconfigPath = Path.Combine("Data", "MKconfig.txt");
+        var MKconfigPath = Path.Combine(Environment.CurrentDirectory, "Data", "MKconfig.txt");
         var localMKHash = string.Empty;
         try
         {

@@ -228,6 +228,10 @@ public class GPManager
         {
             return false;
         }
+        if (AccurateSearch(platformName, newAccountName) != -1)
+        {
+            return false;
+        }
         else
         {
             GPDatas[targetIndex].ChangeAccountName(newAccountName);
@@ -303,7 +307,10 @@ public class GPManager
                 var data = line.Split(',');
                 AddData(data[0], data[1], data[2], data[3], DateTime.Parse(data[4]));
             }
-            return true;
+            if (GPDatas.Count != 0)
+                return true;
+            else
+                return false;
         }
         else
         {

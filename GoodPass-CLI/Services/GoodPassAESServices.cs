@@ -102,7 +102,7 @@ public static class GoodPassAESServices
         if (localIVStr == String.Empty || localIVStr == null)
         {
             localIV = GenerateIV(masterKey);
-            SetLocalIV(localIV);
+            //SetLocalIV(localIV);
         }
         else
         {

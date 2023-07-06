@@ -204,6 +204,9 @@ public class CommandLineServices
     public static void PrintStart()
     {
         Console.WriteLine($"GoodPass CLI {GoodPass_CLI._version} [.NET {Environment.Version}] on {Environment.OSVersion}");
+        #region Dev test info
+        //Console.WriteLine($"Running on path: {Environment.CurrentDirectory}");
+        #endregion
         Console.WriteLine("Type \"help\" or \"about\" to get more information. Type \"exit\" to leave safely.");
     }
 
