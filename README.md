@@ -16,10 +16,13 @@ The codes there may have serious problems, so don't use them for other developme
 
 Go to [GoodPass](https://github.com/GeorgeDong32/GoodPass) for more project infomation
 
-[GoodPass | GoodPass CLI ](https://georgedong32.github.io/GoodPass/GoodPass-CLI) Page for more information.
+Go to [GoodPass | GoodPass CLI ](https://georgedong32.github.io/GoodPass/GoodPass-CLI) for more information.
 
 ## License
 
 [The GoodPass License](https://github.com/GeorgeDong32/GoodPass/blob/main/LICENSE)
 
-<img src="./img/GPOL_overview.png" width=700>
+<p align="center">
+    <img src="./img/GPOL_overview.png" width=700>
+</p>
+
