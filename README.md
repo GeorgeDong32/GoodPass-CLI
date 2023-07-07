@@ -1,18 +1,24 @@
-# GoodPass-v2
-<h1 align="center">
-  <img src="https://github.com/GeorgeDong32/GoodPass/blob/resource/Title%20Photo/GoodPass3.0_Developer.png" alt="GoodPass" width="400">
-</h1>
+# GoodPass-CLI
+
+<p align="center">
+    <img src="./img/GoodPass-CLI-bg1.png" width=700>
+</p>
 
 > Developed by GeorgeDong32 
 > 
 > <Copyright (c) GeorgeDong32(Github). All rights reserved.>
 
-<h3>
+<h4>
 This repo is set up to help developer develop GoodPass and stores developing codes.<br>
 The codes there may have serious problems, so don't use them for other development!<br>
-</h3>
+</h4>
 
-Go to [GoodPass](https://github.com/GeorgeDong32/GoodPass) for more detail infomations!
+Go to [GoodPass](https://github.com/GeorgeDong32/GoodPass) for more project infomation
+
+[GoodPass | GoodPass CLI ](https://georgedong32.github.io/GoodPass/GoodPass-CLI) Page for more information.
 
 ## License
+
 [The GoodPass License](https://github.com/GeorgeDong32/GoodPass/blob/main/LICENSE)
+
+<img src="./img/GPOL_overview.png" width=700>
