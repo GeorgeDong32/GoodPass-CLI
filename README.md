@@ -4,7 +4,6 @@
     <img src="./img/GoodPass-CLI-bg1.png" width=700>
 </p>
 
-
 > Developed by GeorgeDong32 
 > 
 > <Copyright (c) GeorgeDong32(Github). All rights reserved.>
