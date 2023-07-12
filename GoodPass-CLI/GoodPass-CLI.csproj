@@ -6,6 +6,11 @@
     <RootNamespace>GoodPass_CLI</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <ApplicationIcon>Properties\GoodPass_CLI.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="Properties\GoodPass_CLI.ico" />
+  </ItemGroup>
 
 </Project>
