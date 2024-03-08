@@ -15,7 +15,7 @@ The codes there may have serious problems, so don't use them for other developme
 
 Go to [GoodPass](https://github.com/GeorgeDong32/GoodPass) for more project infomation
 
-[GoodPass | GoodPass CLI ](https://georgedong32.github.io/GoodPass/GoodPass-CLI) Page for more information.
+[GoodPass | GoodPass CLI ](https://goodpass.georgedong.tech/GoodPass-CLI) Page for more information.
 
 ## License
 
